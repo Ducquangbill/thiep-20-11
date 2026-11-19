@@ -1,0 +1,122 @@
+{
+  ".agents/hooks.json": {
+    "mtime": 1795088825.5123403,
+    "seen": 1795091875.4321287,
+    "ast_hash": "2253344445a9f6e8c6a119adbf33bcc3",
+    "semantic_hash": ""
+  },
+  ".entire/settings.json": {
+    "mtime": 1795088828.6859763,
+    "seen": 1795091875.4321342,
+    "ast_hash": "ebc0cdae27aa7e32ba33fc2a2125acda",
+    "semantic_hash": ""
+  },
+  ".opencode/plugins/entire.ts": {
+    "mtime": 1795088825.521177,
+    "seen": 1795091875.4321365,
+    "ast_hash": "879868c79413d1fb6e57534e3ca33fc6",
+    "semantic_hash": ""
+  },
+  "app.js": {
+    "mtime": 1795097400.7796352,
+    "seen": 1795097537.226344,
+    "ast_hash": "f614c2a8390446cef16b4c5c26b0a71f",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1795095634.3801293,
+    "seen": 1795095695.943785,
+    "ast_hash": "c07fe36b6f5bbbc04d214981b713044b",
+    "semantic_hash": ""
+  },
+  "tests/app.test.js": {
+    "mtime": 1795097417.9706187,
+    "seen": 1795097537.2263474,
+    "ast_hash": "09cb8c42d9c2270fa1d4d475f68f08ae",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1795091308.4561167,
+    "seen": 1795091875.4321406,
+    "ast_hash": "71f678e12a59788723dc9f474df03e93",
+    "semantic_hash": ""
+  },
+  "docs/agents/domain.md": {
+    "mtime": 1795091077.8363588,
+    "seen": 1795091875.4321415,
+    "ast_hash": "00bededcb4486406f018b39e9902c610",
+    "semantic_hash": ""
+  },
+  "docs/agents/issue-tracker.md": {
+    "mtime": 1795091077.8363588,
+    "seen": 1795091875.4321423,
+    "ast_hash": "0d106060da3b552b5f5ff8061bc435db",
+    "semantic_hash": ""
+  },
+  "docs/agents/triage-labels.md": {
+    "mtime": 1795091077.8348548,
+    "seen": 1795091875.4321434,
+    "ast_hash": "9918a4051db590bde5644c39db5194f4",
+    "semantic_hash": ""
+  },
+  "docs/thiep-20-11/design.md": {
+    "mtime": 1795096685.4167829,
+    "seen": 1795096774.416224,
+    "ast_hash": "32e0730483e141c653775b3cfec59b9b",
+    "semantic_hash": ""
+  },
+  "docs/thiep-20-11/requirements.md": {
+    "mtime": 1795096579.8941033,
+    "seen": 1795096774.4162264,
+    "ast_hash": "e3f0f80ec7cee1b0398f1122fb1ced25",
+    "semantic_hash": ""
+  },
+  "docs/thiep-20-11/spec.md": {
+    "mtime": 1795097522.9164648,
+    "seen": 1795097537.2263625,
+    "ast_hash": "c0c22ddac4a6fa2e800a11429a354cd8",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1795096956.166587,
+    "seen": 1795097141.6356726,
+    "ast_hash": "9b8e9037afd47a7253b60900b5fbe2fa",
+    "semantic_hash": ""
+  },
+  ".impeccable/config.json": {
+    "mtime": 1795094367.9906344,
+    "seen": 1795094800.4222727,
+    "ast_hash": "5f54e0cfa82a4c33e4566f2b7eb455a0",
+    "semantic_hash": ""
+  },
+  "DESIGN.md": {
+    "mtime": 1795097065.9617903,
+    "seen": 1795097141.6356633,
+    "ast_hash": "3626ce83a719bd371b1ede79e7d81e2b",
+    "semantic_hash": ""
+  },
+  "PRODUCT.md": {
+    "mtime": 1795094367.9866283,
+    "seen": 1795094800.4222832,
+    "ast_hash": "93a635bd5ad3126b9edcdc9b2b212cde",
+    "semantic_hash": ""
+  },
+  ".github/workflows/ci.yml": {
+    "mtime": 1795095631.8286216,
+    "seen": 1795095695.9437788,
+    "ast_hash": "f4052008a15cce12ed6e8aa594a7e781",
+    "semantic_hash": ""
+  },
+  "docs/thiep-20-11/release.md": {
+    "mtime": 1795095682.8896053,
+    "seen": 1795095695.9437943,
+    "ast_hash": "72a4d1405e33cc572fe7bce9f6697f11",
+    "semantic_hash": ""
+  },
+  "vercel.json": {
+    "mtime": 1795097372.2924795,
+    "seen": 1795097537.2263494,
+    "ast_hash": "bf5044d3a349ea20bb7b6df0ee128542",
+    "semantic_hash": ""
+  }
+}
