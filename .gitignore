@@ -1,0 +1,21 @@
+# Dependencies (project has none; guard against accidental installs)
+node_modules/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Local tooling / review session artifacts
+.impeccable/live/
+*.log
+npm-debug.log*
+
+# Temporary local output
+tmp/
+.tmp/
+coverage/
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json

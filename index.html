@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#FAF5EC" />
+    <meta
+      name="description"
+      content="Thiệp chúc mừng Ngày Nhà giáo Việt Nam 20/11 — mở phong bì, đọc lời chúc, cánh hoa rơi."
+    />
+    <title>Thiệp chúc mừng 20/11 — Ngày Nhà giáo Việt Nam</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FAF5EC'/%3E%3Cpath d='M16 6l9 6v14H7V12z' fill='%23B85C38'/%3E%3Cpath d='M7 12l9 7 9-7' fill='none' stroke='%236B1F2A' stroke-width='2'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="petal-canvas" aria-hidden="true"></canvas>
+
+    <main id="card-scene" data-state="closed">
+      <button
+        id="envelope"
+        type="button"
+        aria-expanded="false"
+        aria-label="Mở thiệp chúc mừng 20/11"
+      >
+        <span class="envelope-back" aria-hidden="true"></span>
+        <span class="envelope-letter-preview" aria-hidden="true"></span>
+        <span class="envelope-pocket envelope-pocket--l" aria-hidden="true"></span>
+        <span class="envelope-pocket envelope-pocket--r" aria-hidden="true"></span>
+        <span class="envelope-flap" aria-hidden="true"></span>
+        <span class="envelope-seal" aria-hidden="true">
+          <span class="envelope-ribbon"></span>
+          <span class="seal-label">20/11</span>
+          <span class="seal-glint"></span>
+        </span>
+      </button>
+      <p class="prompt">Chạm để mở thiệp</p>
+      <noscript>Thiệp cần JavaScript để mở — vui lòng bật JavaScript.</noscript>
+
+      <article id="greeting-card" class="greeting-card" hidden>
+        <header class="card-head">
+          <span class="card-badge" aria-hidden="true">20 • 11</span>
+          <h1 class="card-title">Tri Ân Thầy Cô</h1>
+        </header>
+        <p class="card-recipient">Gửi:&nbsp;<span id="card-to">Thầy/Cô của em</span></p>
+        <p id="card-msg" class="card-message">Kính chúc Thầy/Cô luôn dồi dào sức khỏe, tràn đầy niềm vui và hạnh phúc. Cảm ơn Thầy/Cô vì tất cả những điều tốt đẹp đã dành cho chúng em.</p>
+        <p class="card-sender">Từ:&nbsp;<span id="card-from">Người học trò của bạn</span></p>
+        <button id="close-card" type="button" class="card-close">Đóng lại</button>
+      </article>
+    </main>
+
+    <button
+      id="open-composer"
+      class="composer-trigger"
+      type="button"
+      aria-expanded="false"
+      aria-controls="composer-panel"
+    >
+      <svg class="composer-trigger-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path
+          d="M4 20c5-1 8-4 11-8.5L12 8.5C9.5 12.5 6.5 15 4 20Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path d="M13 7.5 15.5 5 19 8.5 16.5 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M17.5 3.5 20.5 6.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+      </svg>
+      <span>Tạo thiệp mới</span>
+    </button>
+
+    <div
+      id="composer-panel"
+      class="composer-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="composer-title"
+      hidden
+    >
+      <div class="composer-dialog">
+        <header class="composer-head">
+          <h2 id="composer-title" class="composer-title">Tạo thiệp mới</h2>
+          <button id="close-composer" class="composer-close" type="button" aria-label="Đóng bảng tạo thiệp">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 6 18 18M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+        <p class="composer-lead">Điền lời chúc, rồi sao chép link gửi tặng.</p>
+
+        <div class="composer-field">
+          <div class="composer-label-row">
+            <label for="input-to">Người nhận</label>
+            <span id="count-to" class="composer-count" aria-hidden="true">0/120</span>
+          </div>
+          <input id="input-to" name="to" type="text" maxlength="120" autocomplete="off" aria-describedby="count-to" />
+        </div>
+
+        <div class="composer-field">
+          <div class="composer-label-row">
+            <label for="input-msg">Lời chúc</label>
+            <span id="count-msg" class="composer-count" aria-hidden="true">0/120</span>
+          </div>
+          <textarea id="input-msg" name="msg" rows="3" maxlength="120" aria-describedby="count-msg"></textarea>
+        </div>
+
+        <div class="composer-field">
+          <div class="composer-label-row">
+            <label for="input-from">Người gửi</label>
+            <span id="count-from" class="composer-count" aria-hidden="true">0/120</span>
+          </div>
+          <input id="input-from" name="from" type="text" maxlength="120" autocomplete="off" aria-describedby="count-from" />
+        </div>
+
+        <div class="composer-field">
+          <label for="share-url">Link gửi tặng</label>
+          <input id="share-url" type="text" readonly />
+        </div>
+
+        <div class="composer-actions">
+          <button id="copy-link" class="composer-cta" type="button">Sao chép link gửi tặng</button>
+          <button id="preview-card" class="composer-preview" type="button">Xem thử thiệp</button>
+        </div>
+        <p id="composer-status" class="composer-status" aria-live="polite"></p>
+      </div>
+    </div>
+
+    <div id="status-live" class="sr-only" aria-live="polite"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

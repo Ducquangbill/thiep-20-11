@@ -1,0 +1,29 @@
+# Only the three runtime files (plus vercel.json) are published.
+# Everything below stays out of a CLI / Git-based Vercel deployment.
+
+# Docs, specs, reviews
+docs/
+*.md
+DESIGN.md
+PRODUCT.md
+
+# Tests
+tests/
+
+# Tooling and metadata
+.github/
+.gitignore
+.impeccable/
+.entire/
+.agents/
+.opencode/
+graphify-out/
+.vscode/
+.idea/
+
+# Local artifacts
+*.log
+tmp/
+.tmp/
+coverage/
+node_modules/

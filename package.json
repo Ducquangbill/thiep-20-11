@@ -1,0 +1,11 @@
+{
+  "name": "thiep-20-11",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Thiệp chúc mừng Ngày Nhà giáo Việt Nam 20/11 — static greeting card",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "start": "npx --yes serve --listen 8080 ."
+  }
+}
