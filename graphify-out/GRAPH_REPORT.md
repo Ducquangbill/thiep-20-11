@@ -1,7 +1,7 @@
 # Graph Report - 20-11  (2026-11-19)
 
 ## Corpus Check
-- 19 files · ~25,939 words
+- 19 files · ~26,425 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 3, .css 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e08f725c`
+- Built from commit: `b12a5983`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -53,7 +53,7 @@
   docs/thiep-20-11/spec.md → app.js
 - ``shouldAutoOpenComposer(searchString) -> boolean`` --references--> `resolveParams()`  [INFERRED]
   docs/thiep-20-11/spec.md → app.js
-- ``buildShareUrl(baseUrl, { to, msg, from }) -> string`` --references--> `decodeValue()`  [INFERRED]
+- ``buildShareUrl(baseUrl, { title, to, msg, from }) -> string`` --references--> `decodeValue()`  [INFERRED]
   docs/thiep-20-11/spec.md → app.js
 - ``class EnvelopeController`` --references--> `nextState()`  [INFERRED]
   docs/thiep-20-11/spec.md → app.js
@@ -89,7 +89,7 @@ Nodes (24): Card ornaments (lotus & chrysanthemum filigree), Components & Tokens
 
 ### Community 6 - "ComposerController"
 Cohesion: 0.17
-Nodes (11): ComposerController, `app.js` module exports (ESM; importable in Node and browser), `buildShareUrl(baseUrl, { to, msg, from }) -> string`, `class ComposerController`, `class EnvelopeController`, `decodeValue(raw) -> string`, `nextState(state) -> string`, `prefersReducedMotion() -> boolean` (+3 more)
+Nodes (11): ComposerController, `app.js` module exports (ESM; importable in Node and browser), `buildShareUrl(baseUrl, { title, to, msg, from }) -> string`, `class ComposerController`, `class EnvelopeController`, `decodeValue(raw) -> string`, `nextState(state) -> string`, `prefersReducedMotion() -> boolean` (+3 more)
 
 ### Community 7 - "AGENTS.md"
 Cohesion: 0.22

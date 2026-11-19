@@ -15,7 +15,7 @@ Greenfield repo (no existing components). No frameworks, no libraries, no bundle
   - Single page, no network calls after load.
 - Security/Auth:
   - No auth, no backend, no storage. Trust boundary = URL query string (untrusted input).
-  - Only `to`, `msg`, `from` params are read; all other names ignored (BR-1).
+  - Only `title`, `to`, `msg`, `from` params are read; all other names ignored (BR-1).
   - Every dynamic value inserted via `textContent` only. `innerHTML`/`insertAdjacentHTML`/`outerHTML` are forbidden anywhere in `app.js` (BR-3, NFR-7).
   - Share URLs are generated exclusively via `URLSearchParams` (`buildShareUrl`); user text flows into `URLSearchParams`/`.value`/`textContent`, never into markup. `#share-url` is `type="text" readonly` — display + copy only, never navigable, never executes.
   - Per-param decode wrapped in `try/catch`; malformed `%` never crashes the page (edge case).
@@ -31,13 +31,13 @@ No database, no persistence. Single in-memory content model:
 
 ```js
 // Resolved card content (pure object, no DOM)
-{ to: string, msg: string, from: string }
+{ title: string, to: string, msg: string, from: string }
 ```
 
 Constants in `app.js`:
 - `MAX_FIELD_LEN = 120`
 - `PETAL_COUNT = 30` (clamped to `[10, 40]` at runtime)
-- `DEFAULTS = { to, msg, from }` (exact Vietnamese copy below)
+- `DEFAULTS = { title, to, msg, from }` (exact Vietnamese copy below)
 
 Migration / Backfill: `none`
 
@@ -53,6 +53,7 @@ export const PETAL_MIN = 10;
 export const PETAL_MAX = 40;
 export const PETAL_COUNT = 30;
 export const DEFAULTS = {
+  title: "Tri Ân Thầy Cô",
   to:   "Thầy/Cô của em",
   msg:  "Kính chúc Thầy/Cô luôn dồi dào sức khỏe, tràn đầy niềm vui và hạnh phúc. Cảm ơn Thầy/Cô vì tất cả những điều tốt đẹp đã dành cho chúng em.",
   from: "Người học trò của bạn",
@@ -68,14 +69,14 @@ export const DEFAULTS = {
 - `value.length <= max`: return `value` unchanged.
 - Else: return `value.slice(0, max - 1) + "…"`. Guarantees returned length ≤ 120, `…` included (BR-1, FR-2).
 
-#### `resolveParams(searchString) -> { to, msg, from }`
+#### `resolveParams(searchString) -> { title, to, msg, from }`
 - Input: `searchString: string` (raw `location.search` value, leading `?` optional).
 - Parses pairs manually (splits on `&`, then first `=`), keeping the **raw** value so `decodeValue` controls decoding.
 - Field rules (per field, independently):
   - Key not present, value `null`, or value `""` → `DEFAULTS[field]`.
   - Otherwise → `truncate(decodeValue(rawValue))`.
-- Only `to`/`msg`/`from` keys are consumed; unknown keys (`recipient`, etc.) ignored entirely.
-- Output: `{ to, msg, from }`, all strings, never `undefined`/`null`.
+- Only `title`/`to`/`msg`/`from` keys are consumed; unknown keys (`recipient`, etc.) ignored entirely.
+- Output: `{ title, to, msg, from }`, all strings, never `undefined`/`null`.
 
 #### `nextState(state) -> string`
 - `"closed"` → `"open"`; `"open"` → `"closed"`.
@@ -107,10 +108,10 @@ export const DEFAULTS = {
 - Petal state per instance: `{ x, y, size, swayAmp, swayFreq, phase, speed, rotation, rotationSpeed, opacity }`; rendered as `bezierCurveTo()` notched blossom petal.
 - `start()`/`stop()` return `this` for chaining.
 
-#### `buildShareUrl(baseUrl, { to, msg, from }) -> string`
-- Input: `baseUrl: string` (clean origin + pathname, e.g. `location.origin + location.pathname`); `to`, `msg`, `from`: strings (may be empty/`undefined`).
+#### `buildShareUrl(baseUrl, { title, to, msg, from }) -> string`
+- Input: `baseUrl: string` (clean origin + pathname, e.g. `location.origin + location.pathname`); `title`, `to`, `msg`, `from`: strings (may be empty/`undefined`).
 - Normalizes `baseUrl`: `String(baseUrl ?? "").split("?")[0].split("#")[0]` — existing query/fragment stripped.
-- Per field: `const v = String(field ?? "").trim();` — empty after trim → omitted from the URL; otherwise `params.set(key, v)`.
+- Per field (order `title`, `to`, `msg`, `from`): `const v = String(field ?? "").trim();` — empty after trim → omitted from the URL; otherwise `params.set(key, truncate(v, MAX_FIELD_LEN))`.
 - `const qs = params.toString();` (a shared `URLSearchParams`). Returns `qs ? `${base}?${qs}` : base`.
 - Encoding contract (BR-7): `URLSearchParams` turns spaces into `+` and Vietnamese diacritics/special chars into percent-escapes — exactly inverse of `decodeValue` (`+`→space before `decodeURIComponent`), so `resolveParams(buildShareUrl(...))` round-trips losslessly.
 - Pure, no DOM, no `location` access; testable in Node.
@@ -119,24 +120,24 @@ export const DEFAULTS = {
 - Input: `searchString: string` (raw `location.search` value, leading `?` optional).
 - Output: `true` iff the `compose` param is present with exact value `"1"` (first occurrence); any other value (`"true"`, `"0"`, absent) → `false`.
 - `const p = new URLSearchParams(String(searchString ?? "")); return p.get("compose") === "1";` — `URLSearchParams` tolerates a leading `?`.
-- Independent of `resolveParams`: `compose` never enters the three card fields (BR-1).
+- Independent of `resolveParams`: `compose` never enters the four card fields (BR-1).
 
 #### `class ComposerController`
 - `constructor(doc, win, envelope, { max = MAX_FIELD_LEN } = {})`
-  - `doc`: document-like; elements resolved by id — `#composer-panel`, `#open-composer`, `#close-composer`, `#input-to|msg|from`, `#count-to|msg|from`, `#share-url`, `#copy-link`, `#preview-card`, `#composer-status`, `#card-to|msg|from`, `#card-scene`.
+  - `doc`: document-like; elements resolved by id — `#composer-panel`, `#open-composer`, `#close-composer`, `#input-title|to|msg|from`, `#count-title|to|msg|from`, `#share-url`, `#copy-link`, `#preview-card`, `#composer-status`, `#card-title|to|msg|from`, `#card-scene`.
   - `win`: window-like (`location`, `history`, `navigator`); `envelope`: `EnvelopeController` — `preview()` calls its `open()`.
   - `max`: field cap used by counters and share-URL truncation (`120`).
 - State: getter `isOpen` (internal flag); `#composer-panel.hidden` mirrors it.
 - `open()` / `close()` / `toggle()`: idempotent. `open()` reveals the panel, sets `aria-expanded="true"` on `#open-composer`, marks `#card-scene` and `#open-composer` `inert` (`inert = true` plus the `inert` attribute) so assistive tech cannot traverse behind the modal, then focuses `#input-to`. `close()` hides the panel, clears `inert` on both elements, sets `aria-expanded="false"`, then focuses `#open-composer` — inert is cleared before focus returns.
-- Constructor binds `#open-composer` click → `toggle()`; `#close-composer` → `close()`; panel click where `event.target === #composer-panel` → `close()`; `input` on the three fields → `sync()`; `#copy-link` → `copy()`; `#preview-card` → `preview()`.
-- Keyboard (capture phase on `document`, only while open): `Escape` closes the composer and calls `stopImmediatePropagation()` so the greeting card underneath stays open; `Tab` / `Shift+Tab` wrap focus across `#close-composer`, `#input-to`, `#input-msg`, `#input-from`, `#share-url`, `#copy-link`, `#preview-card` (`_wrapFocus`), so keyboard focus cannot leave the modal. Mid-list Tab is left to the browser.
-- `sync()` → reads the three inputs (raw values), writes `#count-*` = `` `${value.length}/120` `` with `.is-limit` toggled at `>= 120`, and `#share-url.value = buildShareUrl(baseUrl(), fields)`; returns the raw values.
+- Constructor binds `#open-composer` click → `toggle()`; `#close-composer` → `close()`; panel click where `event.target === #composer-panel` → `close()`; `input` on the four fields → `sync()`; `#copy-link` → `copy()`; `#preview-card` → `preview()`.
+- Keyboard (capture phase on `document`, only while open): `Escape` closes the composer and calls `stopImmediatePropagation()` so the greeting card underneath stays open; `Tab` / `Shift+Tab` wrap focus across `#close-composer`, `#input-title`, `#input-to`, `#input-msg`, `#input-from`, `#share-url`, `#copy-link`, `#preview-card` (`_wrapFocus`), so keyboard focus cannot leave the modal. Mid-list Tab is left to the browser.
+- `sync()` → reads the four inputs (raw values), writes `#count-*` = `` `${value.length}/120` `` with `.is-limit` toggled at `>= 120`, and `#share-url.value = buildShareUrl(baseUrl(), fields)`; returns the raw values.
 - `baseUrl()` → `origin + pathname`; falls back to `href`.
 - `copy()` (async) → clipboard write, else `#share-url.select()` + `document.execCommand("copy")` in `try/catch`; `#composer-status` announces `"Đã sao chép link thiệp vào bộ nhớ tạm"` or the manual-copy message; returns a boolean.
-- `preview()` → `sync()`, resolve blank fields to `DEFAULTS` (non-blank truncated to 120 + `…`), write `#card-to|msg|from` via `textContent`, `history.replaceState` inside `try/catch`, `close()`, `envelope.open()`; returns the resolved content.
+- `preview()` → `sync()`, resolve blank fields to `DEFAULTS` (non-blank truncated to 120 + `…`), write `#card-title|to|msg|from` via `textContent`, `history.replaceState` inside `try/catch`, `close()`, `envelope.open()`; returns the resolved content.
 
 #### `init() -> void`
-- Browser-only. Reads `location.search`, calls `resolveParams`, writes the three card slots via `textContent` (labels are static in HTML; only `#card-to`, `#card-msg`, `#card-from` values are dynamic).
+- Browser-only. Reads `location.search`, calls `resolveParams`, writes the four card slots via `textContent` (labels are static in HTML; only `#card-title`, `#card-to`, `#card-msg`, `#card-from` values are dynamic).
 - Instantiates `EnvelopeController` and `PetalController`, wires `onStateChange` → petal `start`/`stop`, binds control events.
 - Instantiates `ComposerController(doc, win, envelopeController)` (only meaningful when `#composer-panel` exists) and auto-opens when `shouldAutoOpenComposer(win?.location?.search ?? "")` is `true`; `compose` is never read by `resolveParams`, so it never leaks into card content.
 - Two `keydown` paths, composer first: `ComposerController` listens on `document` in **capture** phase and consumes `Escape` (closing the composer and calling `stopImmediatePropagation()`) while it is open; `initApp` adds the bubble-phase fallback `if (event.key === "Escape" && controller.state === "open") controller.close()`.
@@ -150,7 +151,7 @@ export const DEFAULTS = {
 
 ## DOM Contracts
 
-Static markup (authoring-time, in `index.html`) is fixed. JS only toggles the attributes listed below and fills three text slots.
+Static markup (authoring-time, in `index.html`) is fixed. JS only toggles the attributes listed below and fills four text slots.
 
 ### IDs
 
@@ -160,6 +161,7 @@ Static markup (authoring-time, in `index.html`) is fixed. JS only toggles the at
 | `petal-canvas` | `<canvas>` | full-viewport, fixed, z-index `0` |
 | `envelope` | `<button type="button">` | whole envelope is one control |
 | `greeting-card` | `<article>` | semantic card, `hidden` initially |
+| `card-title` | `<h1>` | occasion heading (dynamic, default `Tri Ân Thầy Cô`) |
 | `card-to` | `<span>` | recipient value (dynamic) |
 | `card-msg` | `<p>` | message value (dynamic) |
 | `card-from` | `<span>` | sender value (dynamic) |
@@ -169,10 +171,11 @@ Static markup (authoring-time, in `index.html`) is fixed. JS only toggles the at
 | `composer-panel` | `<div>` | `role="dialog"`, `aria-modal="true"`, `aria-labelledby="composer-title"`, `hidden` initially; solid scrim, no blur (craft-floor ban) |
 | `composer-title` | `<h2>` | dialog title (labelledby target) |
 | `close-composer` | `<button type="button">` | closes drawer, label "Đóng" |
+| `input-title` | `<input type="text" maxlength="120">` | heading |
 | `input-to` | `<input type="text" maxlength="120">` | recipient |
 | `input-msg` | `<textarea maxlength="120" rows="3">` | message |
 | `input-from` | `<input type="text" maxlength="120">` | sender |
-| `count-to` / `count-msg` / `count-from` | `<span>` | live `0/120`, `.is-limit` at 120, referenced by each field's `aria-describedby` |
+| `count-title` / `count-to` / `count-msg` / `count-from` | `<span>` | live `0/120`, `.is-limit` at 120, referenced by each field's `aria-describedby` |
 | `share-url` | `<input type="text" readonly>` | generated URL, always copyable |
 | `copy-link` | `<button type="button">` | CTA "Sao chép link gửi tặng" |
 | `preview-card` | `<button type="button">` | CTA "Xem thử thiệp" (applies + opens) |
@@ -203,7 +206,7 @@ Static markup (authoring-time, in `index.html`) is fixed. JS only toggles the at
     <article id="greeting-card" class="greeting-card" hidden>
       <header class="card-head">
         <span class="card-badge" aria-hidden="true">20 • 11</span>
-        <h1 class="card-title">Tri Ân Thầy Cô</h1>
+        <h1 id="card-title" class="card-title">Tri Ân Thầy Cô</h1>
       </header>
       <p class="card-recipient">Gửi:&nbsp;<span id="card-to"></span></p>
       <p id="card-msg" class="card-message"></p>
@@ -218,6 +221,10 @@ Static markup (authoring-time, in `index.html`) is fixed. JS only toggles the at
            role="dialog" aria-modal="true" aria-labelledby="composer-title" hidden>
     <h2 id="composer-title" class="composer-title">Tạo thiệp mới</h2>
     <button id="close-composer" type="button" class="composer-close">Đóng</button>
+
+    <label for="input-title">Tiêu đề thiệp</label>
+    <input id="input-title" type="text" maxlength="120" aria-describedby="count-title" placeholder="Tri Ân Thầy Cô" />
+    <span id="count-title" class="composer-counter">0/120</span>
 
     <label for="input-to">Người nhận</label>
     <input id="input-to" type="text" maxlength="120" aria-describedby="count-to" placeholder="Kính tặng Cô Nguyễn Thị Lan" />
@@ -251,7 +258,7 @@ Ornaments (floral corners) are CSS `::before`/`::after` inline SVG backgrounds o
 - Envelope: real `<button type="button">` → native Enter/Space activation (FR-5), no `tabindex`/`role` needed. `aria-expanded` reflects state. `aria-label` as above.
 - Close control: real `<button type="button">`, default label "Đóng lại".
 - `Escape` key (on `document`) branches composer-first: drawer open → close drawer only (never the card behind it); else with `data-state="open"` → close envelope.
-- Composer: `role="dialog"` + `aria-modal="true"` + `aria-labelledby="composer-title"`; every field has an explicit `<label for>`; drawer open moves focus to `#input-to`, close returns it to `#open-composer`; each field's `aria-describedby` points at its counter (`#count-to/msg/from`, live `0/120`, `.is-limit` at 120 — not `aria-hidden`, so screen readers announce it); `#composer-status` `aria-live="polite"`; `#share-url` `readonly`.
+- Composer: `role="dialog"` + `aria-modal="true"` + `aria-labelledby="composer-title"`; every field has an explicit `<label for>`; drawer open moves focus to `#input-to`, close returns it to `#open-composer`; each field's `aria-describedby` points at its counter (`#count-title/to/msg/from`, live `0/120`, `.is-limit` at 120 — not `aria-hidden`, so screen readers announce it); `#composer-status` `aria-live="polite"`; `#share-url` `readonly`.
 - `#petal-canvas` and all decorative spans: `aria-hidden="true"`.
 - `#status-live`: `aria-live="polite"`, visually hidden via `.sr-only` (not `display:none`).
 - `:focus-visible` outline 3px `--color-focus` (#7A1C24), offset 3–4px, plus a 6px gold halo, on every control.

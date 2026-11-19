@@ -48,7 +48,7 @@
       <article id="greeting-card" class="greeting-card" hidden>
         <header class="card-head">
           <span class="card-badge" aria-hidden="true">20 • 11</span>
-          <h1 class="card-title">Tri Ân Thầy Cô</h1>
+          <h1 id="card-title" class="card-title">Tri Ân Thầy Cô</h1>
         </header>
         <p class="card-recipient">Gửi:&nbsp;<span id="card-to">Thầy/Cô của em</span></p>
         <p id="card-msg" class="card-message">Kính chúc Thầy/Cô luôn dồi dào sức khỏe, tràn đầy niềm vui và hạnh phúc. Cảm ơn Thầy/Cô vì tất cả những điều tốt đẹp đã dành cho chúng em.</p>
@@ -100,8 +100,16 @@
 
         <div class="composer-field">
           <div class="composer-label-row">
+            <label for="input-title">Tiêu đề thiệp</label>
+            <span id="count-title" class="composer-count">0/120</span>
+          </div>
+          <input id="input-title" name="title" type="text" maxlength="120" autocomplete="off" placeholder="Tri Ân Thầy Cô" aria-describedby="count-title" />
+        </div>
+
+        <div class="composer-field">
+          <div class="composer-label-row">
             <label for="input-to">Người nhận</label>
-            <span id="count-to" class="composer-count" aria-hidden="true">0/120</span>
+            <span id="count-to" class="composer-count">0/120</span>
           </div>
           <input id="input-to" name="to" type="text" maxlength="120" autocomplete="off" aria-describedby="count-to" />
         </div>
@@ -109,7 +117,7 @@
         <div class="composer-field">
           <div class="composer-label-row">
             <label for="input-msg">Lời chúc</label>
-            <span id="count-msg" class="composer-count" aria-hidden="true">0/120</span>
+            <span id="count-msg" class="composer-count">0/120</span>
           </div>
           <textarea id="input-msg" name="msg" rows="3" maxlength="120" aria-describedby="count-msg"></textarea>
         </div>
@@ -117,7 +125,7 @@
         <div class="composer-field">
           <div class="composer-label-row">
             <label for="input-from">Người gửi</label>
-            <span id="count-from" class="composer-count" aria-hidden="true">0/120</span>
+            <span id="count-from" class="composer-count">0/120</span>
           </div>
           <input id="input-from" name="from" type="text" maxlength="120" autocomplete="off" aria-describedby="count-from" />
         </div>

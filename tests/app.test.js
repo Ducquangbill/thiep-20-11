@@ -155,10 +155,11 @@ test("constants match the spec", () => {
   assert.equal(PETAL_MIN, 10);
   assert.equal(PETAL_MAX, 40);
   assert.equal(PETAL_COUNT, 30);
-  assert.deepEqual(Object.keys(DEFAULTS).sort(), ["from", "msg", "to"]);
+  assert.deepEqual(Object.keys(DEFAULTS).sort(), ["from", "msg", "title", "to"]);
 });
 
 test("DEFAULTS carry the final Vietnamese copy", () => {
+  assert.equal(DEFAULTS.title, "Tri Ân Thầy Cô");
   assert.equal(DEFAULTS.to, "Thầy/Cô của em");
   assert.equal(DEFAULTS.from, "Người học trò của bạn");
   assert.match(DEFAULTS.msg, /^Kính chúc Thầy\/Cô/);
@@ -223,10 +224,22 @@ test("resolveParams ignores unknown parameter names", () => {
 test("resolveParams decodes each field independently", () => {
   const result = resolveParams("?to=C%C3%B4%20Lan&msg=Ch%C3%BAc%20c%C3%B4%20vui&from=Sinh+vi%C3%AAn");
   assert.deepEqual(result, {
+    title: DEFAULTS.title,
     to: "Cô Lan",
     msg: "Chúc cô vui",
     from: "Sinh viên",
   });
+});
+
+test("resolveParams accepts a custom title and falls back when blank", () => {
+  assert.equal(
+    resolveParams("?title=Ch%C3%BAc+M%E1%BB%ABng+Sinh+Nh%E1%BA%ADt+M%E1%BA%B9").title,
+    "Chúc Mừng Sinh Nhật Mẹ",
+  );
+  assert.equal(resolveParams("?title=&to=Lan").title, DEFAULTS.title);
+  assert.equal(resolveParams("?title=%20%20").title, DEFAULTS.title);
+  assert.equal(resolveParams(`?title=${"a".repeat(200)}`).title.length, 120);
+  assert.equal(resolveParams("?to=Lan").title, "Tri Ân Thầy Cô");
 });
 
 test("resolveParams falls back per field, not globally", () => {
@@ -259,10 +272,10 @@ test("resolveParams never throws on malformed percent encoding", () => {
   assert.equal(result.msg, DEFAULTS.msg);
 });
 
-test("resolveParams always returns three strings", () => {
+test("resolveParams always returns four strings", () => {
   for (const input of ["", "?", "?to=", "?msg=%zz", "?to=a&from=b"]) {
     const result = resolveParams(input);
-    assert.deepEqual(Object.keys(result).sort(), ["from", "msg", "to"]);
+    assert.deepEqual(Object.keys(result).sort(), ["from", "msg", "title", "to"]);
     for (const value of Object.values(result)) {
       assert.equal(typeof value, "string");
       assert.notEqual(value, "undefined");
@@ -613,6 +626,7 @@ function appFixture(search) {
     "card-scene": fakeEl(),
     envelope: fakeEl(),
     "greeting-card": fakeEl({ hidden: true }),
+    "card-title": fakeEl(),
     "card-to": fakeEl(),
     "card-msg": fakeEl(),
     "card-from": fakeEl(),
@@ -621,9 +635,11 @@ function appFixture(search) {
     "open-composer": fakeEl(),
     "composer-panel": fakeEl({ hidden: true }),
     "close-composer": fakeEl(),
+    "input-title": fakeEl(),
     "input-to": fakeEl(),
     "input-msg": fakeEl(),
     "input-from": fakeEl(),
+    "count-title": fakeEl(),
     "count-to": fakeEl(),
     "count-msg": fakeEl(),
     "count-from": fakeEl(),
@@ -747,6 +763,7 @@ test("initApp ignores reduced motion petals but keeps content", () => {
     "card-scene": fakeEl(),
     envelope: fakeEl(),
     "greeting-card": fakeEl({ hidden: true }),
+    "card-title": fakeEl(),
     "card-to": fakeEl(),
     "card-msg": fakeEl(),
     "card-from": fakeEl(),
@@ -818,11 +835,26 @@ test("buildShareUrl encodes separators so values survive a round trip", () => {
 });
 
 test("buildShareUrl round-trips real Vietnamese input through resolveParams", () => {
-  const card = { to: "Cô Nguyễn Thị Lan", msg: "Chúc mừng Ngày Nhà giáo 20/11 — chúc thầy cô ễ ươ đ vui vẻ!", from: "Tập thể 12A1" };
+  const card = {
+    title: "Chúc Mừng Sinh Nhật Mẹ",
+    to: "Cô Nguyễn Thị Lan",
+    msg: "Chúc mừng Ngày Nhà giáo 20/11 — chúc thầy cô ễ ươ đ vui vẻ!",
+    from: "Tập thể 12A1",
+  };
   const url = buildShareUrl("https://thiep.vn/", card);
   assert.ok(!/[ \t]/.test(url), "no raw space in the share URL");
   const resolved = resolveParams(url.slice(url.indexOf("?")));
   assert.deepEqual(resolved, card);
+  assert.ok(url.startsWith("https://thiep.vn/?title="), "title comes first");
+});
+
+test("buildShareUrl appends title only when provided", () => {
+  assert.equal(buildShareUrl("https://ex.com/", { to: "Lan" }), "https://ex.com/?to=Lan");
+  assert.equal(buildShareUrl("https://ex.com/", { title: "   ", to: "Lan" }), "https://ex.com/?to=Lan");
+  assert.equal(
+    buildShareUrl("https://ex.com/", { title: "Chúc Mừng Sinh Nhật Mẹ", to: "Mẹ" }),
+    "https://ex.com/?title=Ch%C3%BAc+M%E1%BB%ABng+Sinh+Nh%E1%BA%ADt+M%E1%BA%B9&to=M%E1%BA%B9",
+  );
 });
 
 test("buildShareUrl drops whitespace-only fields without padding others", () => {
@@ -849,9 +881,11 @@ function composerFixture({ clipboard } = {}) {
     "card-scene": fakeEl(),
     "composer-panel": fakeEl({ hidden: true }),
     "close-composer": fakeEl(),
+    "input-title": fakeEl(),
     "input-to": fakeEl(),
     "input-msg": fakeEl(),
     "input-from": fakeEl(),
+    "count-title": fakeEl(),
     "count-to": fakeEl(),
     "count-msg": fakeEl(),
     "count-from": fakeEl(),
@@ -859,6 +893,7 @@ function composerFixture({ clipboard } = {}) {
     "copy-link": fakeEl(),
     "preview-card": fakeEl(),
     "composer-status": fakeEl(),
+    "card-title": fakeEl(),
     "card-to": fakeEl(),
     "card-msg": fakeEl(),
     "card-from": fakeEl(),
@@ -933,6 +968,28 @@ test("typing updates counters and the share link live", () => {
     "https://thiep.vn/thiep?to=C%C3%B4+Lan&msg=Ch%C3%BAc+m%E1%BB%ABng",
   );
   assert.equal(composer.sync().from, "");
+});
+
+test("title input updates its counter, share link and preview heading", () => {
+  const { elements, composer } = composerFixture();
+  const value = "Chúc Mừng Sinh Nhật Mẹ";
+  elements["input-title"].value = value;
+  elements["input-title"].fire("input");
+
+  assert.equal(elements["count-title"].textContent, `${value.length}/120`);
+  assert.equal(elements["count-to"].textContent, "0/120");
+  assert.ok(
+    elements["share-url"].value.startsWith(
+      `https://thiep.vn/thiep?title=${encodeURIComponent(value).replace(/%20/g, "+")}`,
+    ),
+  );
+
+  composer.preview();
+  assert.equal(elements["card-title"].textContent, value);
+
+  const blank = composerFixture();
+  blank.composer.preview();
+  assert.equal(blank.elements["card-title"].textContent, DEFAULTS.title);
 });
 
 test("counter sets is-limit at 120 characters", () => {
@@ -1116,6 +1173,18 @@ test("initApp keeps the composer closed without the flag", () => {
     assert.equal(app.elements["composer-panel"].hidden, true);
     assert.equal(app.elements["open-composer"].getAttribute("aria-expanded"), "false");
     assert.match(app.elements["share-url"].value, /^https:\/\/thiep\.vn\/\?to=/);
+  } finally {
+    app.cleanup();
+  }
+});
+
+test("initApp writes a custom title and seeds the composer field", () => {
+  const app = appFixture("?title=Ch%C3%BAc+M%E1%BB%ABng+Sinh+Nh%E1%BA%ADt+M%E1%BA%B9&to=M%E1%BA%B9");
+  try {
+    assert.equal(app.elements["card-title"].textContent, "Chúc Mừng Sinh Nhật Mẹ");
+    assert.equal(app.elements["input-title"].value, "Chúc Mừng Sinh Nhật Mẹ");
+    assert.equal(app.elements["card-to"].textContent, "Mẹ");
+    assert.ok(app.elements["share-url"].value.includes("title="));
   } finally {
     app.cleanup();
   }

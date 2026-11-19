@@ -9,7 +9,7 @@ Thiếu một phương thức gửi lời chúc 20/11 (Ngày Nhà giáo Việt N
 
 - **US-1:** As a *người tặng*, tôi muốn **mở phong bì bằng một cú bấm** (hiệu ứng 3D mượt) để người nhận có cảm giác "mở thư thật".
 - **US-2:** As a *người tặng*, tôi muốn **đóng lại phong bì** để xem lại hiệu ứng mở thư nhiều lần hoặc trình diễn cho người khác.
-- **US-3:** As a *người tặng*, tôi muốn **điền tên người nhận / lời chúc / tên người gửi vào URL** để tạo link thiệp riêng mà không cần đăng ký hay lưu trữ.
+- **US-3:** As a *người tặng*, tôi muốn **điền tiêu đề (`Tri Ân Thầy Cô`) / tên người nhận / lời chúc / tên người gửi vào URL** để tạo link thiệp riêng mà không cần đăng ký hay lưu trữ.
 - **US-4:** As a *người nhận*, tôi muốn **mở link và đọc lời chúc hiển thị đúng tiếng Việt**, có dấu, trên điện thoại lẫn máy tính.
 - **US-5:** As a *người nhận*, tôi muốn **hiệu ứng cánh hoa rơi nhẹ nhàng** để tăng cảm giác ấm áp, trang trọng.
 - **US-6:** As a *người dùng bị rối vận động (motion-sensitive)*, tôi muốn **hiệu ứng động được giảm/tắt** khi hệ điều hành bật chế độ giảm chuyển động, để dùng thiệp an toàn.
@@ -21,7 +21,7 @@ Thiếu một phương thức gửi lời chúc 20/11 (Ngày Nhà giáo Việt N
 - **In scope:**
   - 1 trang thiệp đơn (single showcase card), layout dọc/trung tâm.
   - Tương tác phong bì 3D: bấm mở, bấm đóng/xem lại.
-  - Nội dung thiệp: tiêu đề dịp 20/11, lời chúc, tên người nhận, tên người gửi.
+  - Nội dung thiệp: tiêu đề (mặc định "Tri Ân Thầy Cô", tuỳ biến được), lời chúc, tên người nhận, tên người gửi.
   - Hiệu ứng cánh hoa rơi (canvas/CSS particles, nhẹ).
   - Tuỳ biến qua URL query params với fallback về nội dung mặc định tiếng Việt.
   - Bảng soạn thảo nhanh "Tạo thiệp mới" (quick composer) + sinh link chia sẻ đã mã hoá.
@@ -35,13 +35,13 @@ Thiếu một phương thức gửi lời chúc 20/11 (Ngày Nhà giáo Việt N
 
 ## Business Rules
 
-- `BR-1`: Cá nhân hoá chỉ qua URL query params, tối đa 3 tham số: `to` (người nhận), `msg` (lời chúc), `from` (người gửi) — criterion: param đúng tên, giá trị được giải mã URL (decodeURIComponent), độ dài hiển thị ≤ 120 ký tự mỗi trường (giá trị dài hơn bị cắt với dấu `…`) — OK: `?to=Cô%20Lan&msg=Chúc%20cô%20một%20ngày%20vui&from=Sinh%20viên%2012A` / BAD: `?recipient=...` (tên sai → bỏ qua).
-- `BR-2`: Thiếu 1 hoặc cả 3 params → dùng nội dung mặc định trang trọng tiếng Việt (tiêu đề "Chào mừng Ngày Nhà giáo Việt Nam 20/11", lời chúc mặc định, người gửi "Người học trò của bạn") — criterion: URL không có params hiển thị đúng bộ nội dung mặc định, không hiển thị chỗ trống — OK: `https://site/` / BAD: hiển thị "undefined" hoặc ô trống.
+- `BR-1`: Cá nhân hoá chỉ qua URL query params, tối đa 4 tham số: `title` (tiêu đề thiệp), `to` (người nhận), `msg` (lời chúc), `from` (người gửi) — criterion: param đúng tên, giá trị được giải mã URL (decodeURIComponent), độ dài hiển thị ≤ 120 ký tự mỗi trường (giá trị dài hơn bị cắt với dấu `…`) — OK: `?title=Chúc+Mừng+Sinh+Nhật+Mẹ&to=Mẹ&msg=Chúc%20mẹ%20vui&from=Quang` / BAD: `?recipient=...` (tên sai → bỏ qua).
+- `BR-2`: Thiếu 1 hoặc cả 4 params → dùng nội dung mặc định trang trọng tiếng Việt (tiêu đề "Tri Ân Thầy Cô", lời chúc mặc định, người gửi "Người học trò của bạn") — criterion: URL không có params hiển thị đúng bộ nội dung mặc định, không hiển thị chỗ trống — OK: `https://site/` / BAD: hiển thị "undefined" hoặc ô trống.
 - `BR-3`: Params chứa ký tự cần escape (`<`, `>`, `"`) phải được hiển thị an toàn dạng text, không được thực thi — criterion: giá trị `<script>alert(1)</script>` xuất hiện như chữ trên màn hình, không chạy script — OK: text literal / BAD: script chạy.
 - `BR-4`: Trạng thái phong bì chỉ có 2 trạng thái: `closed` (khởi tạo) và `open` — criterion: lần đầu tải luôn là `closed`; 1 lần bấm chuyển sang `open`; bấm lại đóng về `closed` — OK: toggle đúng mỗi lần bấm / BAD: bấm 1 lần chuyển 2 trạng thái.
 - `BR-5`: Hiệu ứng cánh hoa chỉ chạy khi phong bì ở trạng thái `open` — criterion: ở `closed` không có cánh hoa rơi trên màn hình; ngay khi mở, cánh hoa bắt đầu rơi — OK / BAD: cánh hoa rơi trước khi mở thiệp.
 - `BR-6`: Khi hệ điều hành bật `prefers-reduced-motion: reduce` — hiệu ứng cánh hoa và animation 3D được thay bằng trạng thái tĩnh tức thời (phong bì mở thẳng, không hoặc rất ít chuyển động) — criterion: bật reduce → mở phong bì trong ≤ 1 lần chuyển tiếp ngắn hoặc tức thời, 0 cánh hoa rơi liên tục — OK / BAD: vẫn rơi cánh hoa đầy hiệu ứng.
-- `BR-7`: Link chia sẻ của bảng soạn thảo được sinh bằng hàm thuần `buildShareUrl(baseUrl, { to, msg, from })` dùng `URLSearchParams` — criterion: dấu cách mã hoá thành `+`, dấu tiếng Việt/`ễ`/`đ` và ký tự đặc biệt mã hoá percent, trường rỗng (sau `trim`) bị bỏ khỏi URL, và vòng khứ hồi `resolveParams(buildShareUrl(...))` trả đúng nguyên văn nội dung đã nhập — OK: `?to=C%C3%B4+Lan&msg=Ch%C3%BAc+m%E1%BB%ABng` / BAD: URL chứa `Cô Lan` thô chưa mã hoá.
+- `BR-7`: Link chia sẻ của bảng soạn thảo được sinh bằng hàm thuần `buildShareUrl(baseUrl, { title, to, msg, from })` dùng `URLSearchParams` (thứ tự `title`, `to`, `msg`, `from`; chỉ thêm trường không rỗng sau `trim`, cắt ≤ 120 ký tự) — criterion: dấu cách mã hoá thành `+`, dấu tiếng Việt/`ễ`/`đ` và ký tự đặc biệt mã hoá percent, trường rỗng bị bỏ khỏi URL, và vòng khứ hồi `resolveParams(buildShareUrl(...))` trả đúng nguyên văn nội dung đã nhập — OK: `?title=Ch%C3%BAc+M%E1%BB%ABng&to=C%C3%B4+Lan` / BAD: URL chứa `Cô Lan` thô chưa mã hoá.
 
 ## Functional Requirements & Acceptance Criteria
 
@@ -50,24 +50,24 @@ Thiếu một phương thức gửi lời chúc 20/11 (Ngày Nhà giáo Việt N
   - Given phong bì đang đóng / When người dùng bấm phong bì (hoặc nhấn `Enter` khi nó nhận focus) / Then trong ≤ 1s phong bì chuyển động mượt (nắp mở lên theo phối cảnh 3D) và thiệp bên trong hiện ra hoàn chỉnh.
   - Given phong bì đang mở / When bấm nút "Đóng lại" / Then phong bì đóng lại và có thể mở lại lần nữa với hiệu ứng như lần đầu.
 - `FR-2`: **Nội dung thiệp** → AC:
-  - Given trạng thái `open` / When thiệp hiển thị / Then trên thiệp có đủ 4 phần: tiêu đề dịp 20/11, lời chúc, "Gửi: {tên người nhận}", "Từ: {tên người gửi}", theo đúng nội dung từ URL hoặc mặc định (`BR-1`, `BR-2`).
+  - Given trạng thái `open` / When thiệp hiển thị / Then trên thiệp có đủ 4 phần: tiêu đề (mặc định "Tri Ân Thầy Cô", có thể tuỳ biến), lời chúc, "Gửi: {tên người nhận}", "Từ: {tên người gửi}", theo đúng nội dung từ URL hoặc mặc định (`BR-1`, `BR-2`).
   - Given giá trị param vượt 120 ký tự / When hiển thị / Then bị cắt với dấu `…`, layout không vỡ.
 - `FR-3`: **Cánh hoa rơi** → AC:
   - Given thiệp đang mở / When animation chạy / Then cánh hoa rơi từ mép trên xuống dưới màn hình, chuyển động nhẹ nhàng (tốc độ chậm, có độ trễ/lắc nhẹ tự nhiên), số hạt vừa phải (≥ 10 và ≤ 40 hạt hiển thị cùng lúc), không che nội dung thiệp quan trọng.
   - Given người dùng đóng phong bì / When về trạng thái `closed` / Then cánh hoa đang rơi biến mất dần (fade) trong ≤ 1s, không tạo hạt mới.
 - `FR-4`: **Tuỳ biến URL + fallback** → AC:
-  - Given URL có `to`/`msg`/`from` / When trang tải / Then nội dung thiệp đúng như params (đã decode).
+  - Given URL có `title`/`to`/`msg`/`from` / When trang tải / Then nội dung thiệp đúng như params (đã decode), tiêu đề mặc định `Tri Ân Thầy Cô` khi `title` thiếu hoặc rỗng.
   - Given URL không có params hoặc param rỗng / When trang tải / Then thiệp dùng nội dung mặc định tiếng Việt (`BR-2`), không lỗi console.
 - `FR-5`: **Chỉ dẫn tương tác** → AC:
   - Given phong bì `closed` / When lần đầu xem / Then có nhãn rõ "Nhấn để mở thiệp" (người mới không phải đoán).
   - Given người dùng chỉ dùng bàn phím / When tab tới phong bì / Then phong bì nhận focus, bấm `Enter`/`Space` mở thiệp như click chuột.
 - `FR-6`: **Bảng soạn thảo nhanh "Tạo thiệp mới" + link chia sẻ** → AC:
   - Given người tặng đang xem trang / When bấm nút nổi `#open-composer` ("Tạo thiệp mới") / Then mở bảng `#composer-panel` (`role="dialog"`, `aria-modal="true"`, `aria-labelledby="composer-title"`), tiêu điểm chuyển vào `#input-to`.
-  - Given URL chứa `?compose=1` / When trang tải / Then bảng soạn thảo tự mở; URL không có `compose=1` → bảng đóng mặc định (link chia sẻ `?to=...&msg=...&from=...` vẫn mở thiệp thuần, chỉ còn nút nổi).
+  - Given URL chứa `?compose=1` / When trang tải / Then bảng soạn thảo tự mở; URL không có `compose=1` → bảng đóng mặc định (link chia sẻ `?title=...&to=...&msg=...&from=...` vẫn mở thiệp thuần, chỉ còn nút nổi).
   - Given bảng đang mở / When người dùng bấm `Escape` hoặc `#close-composer` / Then bảng đóng, tiêu điểm về `#open-composer`, phong bì phía sau **không** bị chuyển trạng thái.
-  - Given 3 ô `#input-to`/`#input-msg`/`#input-from` (`maxlength="120"` + bộ đếm `#count-to`/`#count-msg`/`#count-from` nối qua `aria-describedby`) / When người dùng gõ / Then bộ đếm hiển thị `{độ dài}/120` đúng (`.is-limit` khi chạm 120) và ô `#share-url` (`readonly`) hiển thị URL sinh bởi `buildShareUrl` (đã mã hoá, bỏ trường rỗng — `BR-7`).
+  - Given 4 ô `#input-title`/`#input-to`/`#input-msg`/`#input-from` (`maxlength="120"` + bộ đếm `#count-title`/`#count-to`/`#count-msg`/`#count-from` nối qua `aria-describedby`) / When người dùng gõ / Then bộ đếm hiển thị `{độ dài}/120` đúng (`.is-limit` khi chạm 120) và ô `#share-url` (`readonly`) hiển thị URL sinh bởi `buildShareUrl` (đã mã hoá, bỏ trường rỗng — `BR-7`).
   - Given nội dung đã nhập / When bấm `#copy-link` ("Sao chép link gửi tặng") / Then URL được chép qua `navigator.clipboard.writeText` (fallback: chọn `#share-url` để chép tay), `#composer-status` (`aria-live="polite"`) thông báo "Đã sao chép link thiệp vào bộ nhớ tạm".
-  - Given nội dung đã nhập / When bấm `#preview-card` ("Xem thử thiệp") / Then `{ to, msg, from }` được ghi vào `#card-to`/`#card-msg`/`#card-from` qua `textContent` (trường rỗng → mặc định `BR-2`), URL cập nhật qua `history.replaceState`, bảng đóng, phong bì mở để người gửi thấy đúng như người nhận sẽ thấy.
+  - Given nội dung đã nhập / When bấm `#preview-card` ("Xem thử thiệp") / Then `{ title, to, msg, from }` được ghi vào `#card-title`/`#card-to`/`#card-msg`/`#card-from` qua `textContent` (trường rỗng → mặc định `BR-2`), URL cập nhật qua `history.replaceState`, bảng đóng, phong bì mở để người gửi thấy đúng như người nhận sẽ thấy.
 
 ## Non-Functional Requirements (NFRs)
 

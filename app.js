@@ -8,12 +8,13 @@ export const PETAL_MAX = 40;
 export const PETAL_COUNT = 30;
 
 export const DEFAULTS = {
+  title: "Tri Ân Thầy Cô",
   to: "Thầy/Cô của em",
   msg: "Kính chúc Thầy/Cô luôn dồi dào sức khỏe, tràn đầy niềm vui và hạnh phúc. Cảm ơn Thầy/Cô vì tất cả những điều tốt đẹp đã dành cho chúng em.",
   from: "Người học trò của bạn",
 };
 
-const FIELDS = ["to", "msg", "from"];
+const FIELDS = ["title", "to", "msg", "from"];
 /** Blossom palette, ordered pale → deep: gold-soft, apricot, terracotta, burgundy. */
 export const PETAL_PALETTE = ["#E8D9A8", "#E3B23C", "#B85C38", "#6B1F2A"];
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
@@ -33,7 +34,7 @@ export function truncate(value, max = MAX_FIELD_LEN) {
   return value.length <= max ? value : `${value.slice(0, max - 1)}…`;
 }
 
-/** Resolve `?to=&msg=&from=` into three display strings; never returns empty or undefined fields. */
+/** Resolve `?title=&to=&msg=&from=` into four display strings; never empty or undefined. */
 export function resolveParams(searchString) {
   const raw = {};
   const query = String(searchString ?? "").replace(/^\?/, "");
@@ -70,9 +71,9 @@ export function prefersReducedMotion(win = globalThis.window) {
  * then only non-blank (trimmed, 120-char capped) fields are encoded with
  * `URLSearchParams` — spaces become `+`, exactly inverse of `decodeValue`.
  */
-export function buildShareUrl(baseUrl, { to = "", msg = "", from = "" } = {}) {
+export function buildShareUrl(baseUrl, { title = "", to = "", msg = "", from = "" } = {}) {
   const cleanBase = String(baseUrl ?? "").split(/[?#]/)[0];
-  const values = { to, msg, from };
+  const values = { title, to, msg, from };
   const params = new URLSearchParams();
   for (const field of FIELDS) {
     const value = truncate(String(values[field] ?? "").trim(), MAX_FIELD_LEN);
