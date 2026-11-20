@@ -61,32 +61,58 @@ const link = `${origin}/?to=${encodeURIComponent(to)}&msg=${encodeURIComponent(m
 
 All four targets are static hosts. No build command, no build output directory (use `.` / repository root), no environment variables.
 
-### Vercel
+### Vercel — live
 
-1. Import the repository, framework preset **Other**.
-2. Build command: empty. Output directory: `.` (or set `"buildCommand": ""`).
-3. Add `vercel.json` for headers:
+| Item | Value |
+| --- | --- |
+| Public URL | `https://thiep-20-11-nu.vercel.app/` |
+| Project | `thiep-20-11` — `prj_63fMHqHaUPOn20rqCQPZg32FlWFN` |
+| Team | `ducquangnaohs-projects` — `team_kKbz3icHmtzNJRMrp4IqDdoo` |
+| Production deployment | `dpl_H47jyaApPEpBGp7CCCCFCukM28wm` (docs-only commits create newer deployments serving the same three files) |
+| Source commit | `8dff96a` on `main` |
+| Hosting mode | Git-linked: every push to `main` builds a production deployment |
+| Build | none — static files served from the repository root (`framework: null`) |
+
+`vercel.json` (committed) declares the security headers:
 
 ```json
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
-        }
+        { "key": "X-Frame-Options", "value": "DENY" }
       ]
     }
   ]
 }
 ```
 
+`.vercelignore` keeps `docs/`, `tests/`, `graphify-out/`, `.github/`, tooling directories and `*.md` out of the published artifact. Verified: `GET /docs/thiep-20-11/spec.md` and `GET /tests/app.test.js` both return `404`.
+
+Deployment protection: the account has SSO protection set to `all_except_custom_domains`. The production domain `thiep-20-11-nu.vercel.app` is exempt and returns `200` to anonymous visitors. Generated deployment URLs such as `thiep-20-11-ducquangnaohs-projects.vercel.app` redirect to Vercel SSO — share the `-nu` domain, not a deployment URL.
+
+Verified on the live deployment (2026-11-19):
+
+```text
+GET /                -> 200  text/html; charset=utf-8            sha1 2ca849a1… (matches repo)
+GET /styles.css      -> 200  text/css; charset=utf-8             sha1 1109f810… (matches repo)
+GET /app.js          -> 200  application/javascript; charset=utf-8 sha1 f63669e1… (matches repo)
+Headers              -> CSP, X-Content-Type-Options: nosniff, Referrer-Policy, X-Frame-Options: DENY
+?to=…&msg=…&from=…   -> 200, 6781 bytes, card slots present (values applied client-side)
+```
+
 Preview deployments from pull requests act as `staging`. Production promotes only from `main`, on explicit approval.
+
+### Vercel — new project setup (if the project is ever recreated)
+
+1. Import the repository, framework preset **Other**.
+2. Build command: empty. Output directory: `.`.
+3. Commit `vercel.json` and `.vercelignore` before the first production deploy.
 
 ### GitHub Pages
 
@@ -143,9 +169,9 @@ Expected: `200`, `text/html; charset=utf-8`, both security headers present, and 
 
 No server, so observability is uptime and edge metrics only.
 
-- Uptime probe (external, e.g. UptimeRobot/Better Stack) on `https://<host>/?to=healthcheck` every 5 minutes, keyword check `Chạm để mở thiệp`, alert to the maintainer email.
+- Uptime probe (external, e.g. UptimeRobot/Better Stack) on `https://thiep-20-11-nu.vercel.app/?to=healthcheck` every 5 minutes, keyword check `Chạm để mở thiệp`, alert to the maintainer email.
 - Alert conditions: any non-`200` response, response > 2s (NFR-3), or keyword missing.
-- Host analytics: Vercel/Netlify/Cloudflare dashboard request and error rates; check the day after launch and on 20/11.
+- Host analytics: the Vercel project dashboard (`ducquangnaohs-projects/thiep-20-11`) for request and error rates; check the day after launch and on 20/11.
 - Client-side errors are not collected by design. Reproduce reported issues locally with the shared URL, since the URL alone fully describes page state.
 
 ## 5. Rollback
@@ -154,10 +180,12 @@ Static hosts keep every deployment immutable, so rollback is a re-promotion, not
 
 | Target | Rollback action | Time |
 | ------ | --------------- | ---- |
-| Vercel | Deployments → previous good deployment → **Promote to Production** (or `vercel rollback <deployment-url>`) | ~30s |
+| Vercel (live) | Vercel dashboard → `thiep-20-11` → Deployments → previous `READY` production deployment → **Promote to Production**, or `request_rollback` with that deployment ID | ~30s |
 | Netlify | Deploys → previous good deploy → **Publish deploy** | ~10s |
 | Cloudflare Pages | Deployments → previous good deployment → **Rollback to this deployment** | ~30s |
 | GitHub Pages | Revert the offending commit on `main` (`git revert <sha>`), push; Pages redeploys | ~2 min |
+
+Current known-good production deployment to roll back to: `dpl_H47jyaApPEpBGp7CCCCFCukM28wm` (commit `8dff96a`). Previous candidate: `dpl_H1A8TAHwkU4DvcHuz2JSYzAqgT38` (commit `b12a598`).
 
 Source-level rollback (all hosts):
 
@@ -167,7 +195,7 @@ git revert <bad-sha>      # never force-push main
 git push origin main
 ```
 
-Verify after rollback: `curl -sI https://<host>/` returns `200`, and the page opens the envelope with default content in a fresh incognito window. No data migration, no cache priming, and no state to clean up is required.
+Because the Vercel project is Git-linked, a `git revert` push redeploys production on its own. Verify after rollback: `curl -sI https://thiep-20-11-nu.vercel.app/` returns `200`, and the page opens the envelope with default content in a fresh incognito window. No data migration, no cache priming, and no state to clean up is required.
 
 ## 6. Project closure
 
